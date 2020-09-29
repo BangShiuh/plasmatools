@@ -1,4 +1,4 @@
-"""Main module."""
+"""Module vibstates"""
 import unittest
 import numpy as np
 import ctypes
