@@ -33,6 +33,7 @@ class TestPlasmatools(unittest.TestCase):
         level = 2
         delta_vv = 1.0
         rates = vs.normalized_net_vibrational_exchange_rates(f_v, rate_constant, delta_vv, level)
+        print(rates)
         rates_solution = np.array([-0.02297368, 0.04594736, -0.02297368])
         np.testing.assert_array_almost_equal(rates, rates_solution, decimal=5)
 

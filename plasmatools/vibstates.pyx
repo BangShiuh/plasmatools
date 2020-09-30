@@ -79,16 +79,17 @@ def normalized_net_vibrational_exchange_rates(double[:] f_v,
 
     cdef Py_ssize_t v, w
     cdef double rate
-    cdef double[:] net_rates = np.zeros(level+1)
-    
+    net_rates = np.zeros(level+1)
+    cdef double[:] net_rates_view = net_rates
+
     for v in range(level):
         for w in range(level):
             rate = ((v+1) * (w+1) * k01 *
                    exp(delta_vv * abs(v-w)) *
                    (1.5 - 0.5 * exp(delta_vv * abs(v-w))) *
                    f_v[v] * f_v[w+1]);
-            net_rates[v+1] += rate;
-            net_rates[w] += rate;
-            net_rates[v] -= rate;
-            net_rates[w+1] -= rate;
+            net_rates_view[v+1] += rate;
+            net_rates_view[w] += rate;
+            net_rates_view[v] -= rate;
+            net_rates_view[w+1] -= rate;
     return net_rates
