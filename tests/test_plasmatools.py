@@ -5,7 +5,7 @@
 
 import unittest
 import numpy as np
-from plasmatools import vibstates as vs
+import plasmatools.vibstates as vs
 
 class TestPlasmatools(unittest.TestCase):
     """Tests for `plasmatools` package."""
@@ -25,6 +25,15 @@ class TestPlasmatools(unittest.TestCase):
         delta_vt = 1.0
         rates = vs.normalized_net_vibrational_quench_rates(f_v, rate_constants, delta_vt, level)
         rates_solution = np.array([0.0625,  0.27729,  2.43111, -2.7709])
+        np.testing.assert_array_almost_equal(rates, rates_solution, decimal=5)
+
+    def test_normalized_vibrational_exchange_rates(self):
+        f_v = np.array([0.7, 0.2, 0.1])
+        rate_constant = 1.0
+        level = 2
+        delta_vv = 1.0
+        rates = vs.normalized_net_vibrational_exchange_rates(f_v, rate_constant, delta_vv, level)
+        rates_solution = np.array([-0.02297368, 0.04594736, -0.02297368])
         np.testing.assert_array_almost_equal(rates, rates_solution, decimal=5)
 
 if __name__ == '__main__':

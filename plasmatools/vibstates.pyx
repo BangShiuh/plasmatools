@@ -1,7 +1,6 @@
-"""Module vibstates"""
-import unittest
 import numpy as np
-import ctypes
+from libc.math cimport exp
+from libc.math cimport abs
 
 def normalized_net_vibrational_excitation_rates(f_v, rate_constants, level):
     """
@@ -72,3 +71,24 @@ def normalized_net_vibrational_quench_rates(f_v, rate_constants, delta_vt, level
     production_rates = np.insert(rates, level, 0)
     destruction_rates = np.insert(rates, 0, 0)
     return production_rates - destruction_rates
+
+def normalized_net_vibrational_exchange_rates(double[:] f_v,
+                                              double k01,
+                                              double delta_vv,
+                                              int level):
+
+    cdef Py_ssize_t v, w
+    cdef double rate
+    cdef double[:] net_rates = np.zeros(level+1)
+    
+    for v in range(level):
+        for w in range(level):
+            rate = ((v+1) * (w+1) * k01 *
+                   exp(delta_vv * abs(v-w)) *
+                   (1.5 - 0.5 * exp(delta_vv * abs(v-w))) *
+                   f_v[v] * f_v[w+1]);
+            net_rates[v+1] += rate;
+            net_rates[w] += rate;
+            net_rates[v] -= rate;
+            net_rates[w+1] -= rate;
+    return net_rates

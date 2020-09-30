@@ -2,7 +2,12 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
+from Cython.Build import cythonize
+
+cython_ext = cythonize([Extension('plasmatools.vibstates',
+                                  ['plasmatools/vibstates.pyx'])
+                       ])
 
 setup(
     author="Bang-Shiuh Chen",
@@ -26,4 +31,5 @@ setup(
     test_suite='tests',
     url='https://github.com/bangshiuh/plasmatools',
     version='0.1.0',
+    ext_modules= cython_ext
 )
