@@ -5,8 +5,8 @@
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
-cython_ext = cythonize([Extension('plasmatools.vibstates',
-                                  ['plasmatools/vibstates.pyx'])
+cython_ext = cythonize([Extension('plasmatools.zerodim',
+                                  ['plasmatools/zerodim.pyx'])
                        ])
 
 setup(

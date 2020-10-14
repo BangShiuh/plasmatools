@@ -6,6 +6,8 @@ __pycache__/
 *.so
 
 # build
+files.txt
+plasmatools/*.c
 build/
 dist/
 plasmatools.egg-info/
