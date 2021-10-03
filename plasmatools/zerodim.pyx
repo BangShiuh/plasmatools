@@ -71,6 +71,11 @@ class ReactorOde:
     
     def __call__(self, t, y):
 
+        # cdef declaration
+        cdef Py_ssize_t vib_reaction_index = 0
+        cdef double Q_electron = 0.0
+        cdef Py_ssize_t r, i, v, k
+
         """the ODE function, y' = f(t,y) """
         # pressure
         t_acoust = self.r_d / (331 * np.sqrt(self.gas.T / 273))
@@ -108,9 +113,6 @@ class ReactorOde:
             if self.gas.species(k).charge != 0:
                 D[k] = (self.gas.mix_diff_coeffs_mole[self.kO2p]
                        * (1 + self.gas.electron_temperature / self.gas.T))
-
-        Q_electron = 0.0
-        vib_reaction_index = 0
 
         if self.pulse_switch == 0.0:
             self.gas.electron_temperature = self.gas.T
@@ -165,31 +167,29 @@ class ReactorOde:
                  (self.T0 - self.gas.T) / self.r_d / self.r_d
                 ) / (rho * self.gas.cp)
 
-        # Energy loss due to mass diffusion
-        for k in range(self.gas.n_species):
-            if k != self.kN2:
-                dTdt += (self.h0[k] * max(mass_diffusion[k], 0.0) +
-                         h[k] * min(mass_diffusion[k], 0.0)) / (rho * self.gas.cp)
+        # cdef
+        cdef double kvt, kvt_10, delta_vt
 
         # Eval V-T relaxation of nitrogen by collision to oxygen atoms
-        kvt_10 = self.gas.T * np.exp(-34.03 - 33.11 * self.gas.T**(-1./3.)) # Starikovskiy 2017
+        kvt_10 = self.gas.T * exp(-34.03 - 33.11 * self.gas.T**(-1./3.)) # Starikovskiy 2017
         delta_vt = 2.87 * (self.gas.T)**(-1.0/3.0) # Lanier 2015
+
         for v in range(self.N_VIB_RXN):
-            kvt = (v+1) * kvt_10 * np.exp(delta_vt*v)
+            kvt = (v+1) * kvt_10 * exp(delta_vt*v)
             self.gas_vib.set_multiplier(kvt, vib_reaction_index)
             vib_reaction_index += 1
 
         # Eval V-T relaxation of nitrogen by collision to nitrogen atoms
         for v in range(self.N_VIB_RXN):
-            kvt = (v+1) * kvt_10 * np.exp(delta_vt*v)
+            kvt = (v+1) * kvt_10 * exp(delta_vt*v)
             self.gas_vib.set_multiplier(kvt, vib_reaction_index)
             vib_reaction_index += 1
 
         # Eval V-T relaxation of nitrogen by collision to nitrogen molecules
-        kvt_10 = self.gas.T * np.exp(-22.86 - 328.9 * self.gas.T**(-1./3.) +
-                                     993.3 * self.gas.T**(-2./3.)) # Starikovskiy 2017
+        kvt_10 = self.gas.T * exp(-22.86 - 328.9 * self.gas.T**(-1./3.) +
+                                  993.3 * self.gas.T**(-2./3.)) # Starikovskiy 2017
         for v in range(self.N_VIB_RXN):
-            kvt = (v+1) * kvt_10 * np.exp(delta_vt*v)
+            kvt = (v+1) * kvt_10 * exp(delta_vt*v)
             self.gas_vib.set_multiplier(kvt, vib_reaction_index)
             vib_reaction_index += 1
 
@@ -213,10 +213,5 @@ class ReactorOde:
                          ) * self.gas.concentrations[self.kN2]
         dfdt_N2v += mole_diffusion / self.gas.concentrations[self.kN2]
 
-        # Energy loss due to mass diffusion
-        for i, k in enumerate(self.N2v_indices):
-            dTdt += (max(mole_diffusion[i], 0.0) * self.h0_mole[k] + min(mole_diffusion[i], 0.0) * self.gas_vib.partial_molar_enthalpies[k]) / (rho * self.gas.cp)
-
         dTdt += -np.dot(self.gas_vib.partial_molar_enthalpies, vib_wdot) / (rho * self.gas.cp)
-        print("test")
         return np.hstack((dTdt, dYdt, dfdt_N2v))

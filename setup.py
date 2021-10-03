@@ -5,9 +5,11 @@
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
-cython_ext = cythonize([Extension('plasmatools.zerodim',
-                                  ['plasmatools/zerodim.pyx'])
+cython_ext = cythonize([Extension('plasmatools.vibstates',
+                                  ['plasmatools/vibstates.pyx'])
                        ])
+# python_ext = Extension('plasmatools.VVTransferSystem',
+#                        ['plasmatools/VVTransferSystem.py'])
 
 setup(
     author="Bang-Shiuh Chen",
